@@ -82,7 +82,7 @@ Each feature has subcategories, called "tags". The `available_tags()` function l
 **Challenge 1: Find a different feature from the `available_features()` list and use the `available_tags()` function to list all the associated tags.
 
 ```{r}
-available_tags("tourism")
+available_tags("office")
 ```
 
 ## Creating a query to download data
