@@ -82,7 +82,7 @@ Each feature has subcategories, called "tags". The `available_tags()` function l
 **Challenge 1: Find a different feature from the `available_features()` list and use the `available_tags()` function to list all the associated tags.
 
 ```{r}
-available_tags("healthcare")
+available_tags("office")
 ```
 
 ## Creating a query to download data
@@ -92,7 +92,8 @@ The first step in creating an `osmdata` query is defining the geographical area 
 **Challenge 2: Create a bounding box for your project target area.**
 
 ```{r}
-bb <- getbb("Maui")
+bb <- getbb("Livingstone")
+
 bb
 ```
 The `osmdata` package retrieves data from the overpass API, which is a read-only API that serves up custom selected parts of the OSM map data. To retrieve the required features of a place (defined by the bounding box), we have to then create an overpass query. This can be easily done using the `opq()` function of the osmdata package. Here we use the previously defined bounding box to create the overpass query.
@@ -167,7 +168,8 @@ You will have to plug in the values from the table into the new format for `coor
 ggplot() +
   geom_sf(data = schools$osm_polygons) +
   geom_sf_text(data = schools$osm_polygons, aes(label = name), size = 2, hjust = 0) +
-  coord_sf(xlim = c(-156.69726, -155.97909), ylim = c(20.57443, 21.03156), expand = FALSE)
+  coord_sf(xlim = c(25.70143, 26.02143), ylim = c(-18.01313, -17.69314), expand = FALSE)
+
 ```
 The `osmdata` package can also be used to download other spatial features such as streets and coastlines, and overlay them on top of each other using `ggplot2` to create a map with more context. For this we create multiple queries for each feature like the code chunk below.
 
@@ -209,7 +211,7 @@ ggplot() +
   geom_sf(data = small_streets$osm_lines, inherit.aes = FALSE, color = "#a6a6a6", size = .2, alpha = .8) +
   geom_sf(data = coastline$osm_lines, inherit.aes = FALSE, color = "black", size = .8, alpha = .5) +
   geom_sf(data = schools$osm_polygons, inherit.aes = FALSE, colour = "red", fill = "red", alpha = .5, size = 1) +
-  coord_sf(xlim = c(-156.69726, -155.97909), ylim = c(20.57443, 21.03156), expand = TRUE) +
+  coord_sf(xlim = c(25.70143, 26.02143), ylim = c(-18.01313, -17.69314), expand = TRUE) +
   geom_sf_text(data = schools$osm_polygons, aes(label = name), size = 2, hjust = 0) +
   theme_bw() +
   labs(

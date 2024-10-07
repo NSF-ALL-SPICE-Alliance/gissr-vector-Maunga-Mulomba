@@ -176,7 +176,7 @@ Now let's add a title and subtitle to our map.
 ```{r}
 ggplot(data = world) +
     geom_sf() +
-    ggtitle("Countries of the World", subtitle = "Created by Catherine Brockway")
+    ggtitle("Countries of the World", subtitle = "Created by Maunga Mulomba")
 
 ```
 
@@ -196,8 +196,8 @@ The code chunk below will create a new dataframe called `world_without_antarctic
 
 Nothing against Australia! We're just learning how to navigate dataframes and make choices about our maps.
 ```{r}
-world_without_antarctica <- world %>% 
-  filter(iso_a3 != "ATA")
+world_without_australia <- world %>% 
+  filter(iso_a3 != "AUS")
 ```
 
 Then we create a new use of the `ggplot()` function that specifies our new dataframe without Antarctica. Notice this code is slightly different in terms of where the `data = world_without_antarctica` part shows up. This is one of many examples where there are multiple ways of doing the same thing in R. It's a matter of style, and you will develop your own preferred style as you learn more.
@@ -226,7 +226,7 @@ The colors we are using here are what are known as "hex colors", because they ar
 ```{r}
 ggplot() + 
   geom_sf(data = world_without_antarctica, 
-          fill = "#669438", color = "#32481B", size = 0.25) +
+          fill="#98FF98", color="#008080", scale = 0.2) +
   ggtitle("Countries of the World", subtitle = "without Antarctica")
 ```
 
@@ -249,11 +249,9 @@ We are using Brewer color palettes (created by Cynthia A. Brewer) in this class,
 
 To learn more about choosing color palettes in R, specifically using the `ggplot2` package, read [Chapter 11](https://ggplot2-book.org/scales-colour) in "ggplot2: Elegant Graphics for Data Analysis". 
 ```{r}
-ggplot() + 
-  geom_sf(data = world_without_antarctica, 
-          aes(fill = as.factor(mapcolor7)),
-          color = "#401D16", size = 0.25) +
-  scale_fill_brewer(palette = "Set1") +
+ggplot(data = world_without_antarctica) +
+  geom_sf(aes(fill = as.factor(mapcolor7)), color = "#000", size = 0.3) +
+  scale_fill_brewer(palette = "Set3") +
   guides(fill = "none") +
   theme_void()
 ```
@@ -292,9 +290,8 @@ The Orthographic Azimuthal projection is a good option if you want to choose the
 ```{r}
 ggplot(data = world) +
   geom_sf(fill = "#669438", color = "#32481B", size = 0.25) +
-    coord_sf(crs = "+proj=ortho +lat_0=33 +lon_0=-101 ") +
-  ggtitle("Lubbock, TX as the Center of the World", subtitle = "Orthographic Azimuthal")+
-  theme_void()
+  coord_sf(crs = "+proj=ortho +lat_0=-17 +lon_0=25") +
+  ggtitle("Livingstone, ZM as the Center of the World", subtitle = "Orthographic Azimuthal")
 
 ```
 
