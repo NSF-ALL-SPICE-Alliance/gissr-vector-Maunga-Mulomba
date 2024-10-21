@@ -1,102 +1,376 @@
 ---
-title: "Final Challenge Instructions"
-author: "Catherine Brockway"
+title: "Climate Change and Human-Wildlife Conflict in Livingstone"
+author: "Maunga Mulomba"
 date: "`r Sys.Date()`"
 output: 
-  html_document:
-    theme: flatly
-    toc: TRUE
-    toc_float: TRUE
+  prettydoc::html_pretty:
+    theme: cayman
+    toc: yes
 ---
+
+We start by loading all relevant packages.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library("vembedr")
 ```
 
-<img src="`r here::here('Images/ALL-SPICE.png')`" width="240" /> <img src="`r here::here('Images/3_CIFAL.png')`" width="200" />
 
-Your final challenge in this course is to choose a location that is important to you and to produce maps that illustrate aspects of sustainability and/or resilience in that location. Each map should tell a story that will inspire people to take action to increase sustainability/resilience in your chosen location. 
+```{r}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+```
 
-This final project can be in any language you are comfortable using. I would love to see projects in your native language if it is not English! If you need help translating the text in your maps, please reach out to the instructor.
+```{r}
+library(leaflet)
+library(osmdata)
+```
 
-## Target Area
 
-Choose a location that is *meaningful to you*. This can be where you currently live, your hometown, where your family is from, etc. I recommend choosing a location that is larger than a neighborhood and smaller than a large country (e.g. United States, China).
+```{r}
+library(rinat)
+library(tmap)
+library(plotly)
+```
 
-All of your maps will show data related to this target area, though maps may be at different scales depending on the available data.
 
-## Sustainability and Resilience Topics
+# Introduction
 
-You may choose any topics related to sustainability and/or resilience that you are interested in and that *you can quickly find data for*; you want to focus most of your time on building, improving, and interpreting your maps, not on finding, cleaning, and wrangling data.
+Hey there! My name is Maunga, and I am from Livingstone. Livingstone, located in the southern part of Zambia, is a small town with a rich cultural and natural heritage. 
 
-I recommend using APIs for OpenStreetMap and/or iNaturalist for your first two required maps, since you already know how to use them to retrieve data, and they should have at least some data available for your location. 
 
-## The Assignment
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+states <- (ne_states(country = "Zambia"))
+```
 
-### Step 1: Edit this RMarkdown ("Final_Challenge.Rmd)
 
-Leave these instructions at the bottom of your .rmd until you have finished the rest of the assignment, so you can easily refer to them. 
+Here is a locator map of Livingstone in Zambia
 
-Fill out the YAML header with your project title, your name, and choose a theme that you like. See this [guide](https://rpubs.com/ranydc/rmarkdown_themes) for help with setting a theme.
+```{r}
+# Define Livingstone coordinates
+livingstone_coords <- data.frame(lon = 25.856, lat = -17.857)
 
-I recommend a title like this: "Topic1 and Topic2 in Location", where you fill in the topics you cover and the location you choose.
+# Plot map of Zambia with Livingstone town highlighted
+ggplot() +
+    geom_sf(data = world, fill = "#EEEFEE") +
+    geom_sf(data = states, fill = "#D6FCC8", size = 0.25) +
 
-Use this [guide](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf) for help with formatting your RMarkdown, for example, using bold or italics, creating headers, adding images, etc.
+    geom_point(data = livingstone_coords, aes(x = lon, y = lat), color = "#D20103", size = 2.5) +  # Highlight Livingstone
+  
+    geom_text(data = livingstone_coords, aes(x = lon, y = lat, label = "Livingstone"), 
+              nudge_y = 0.55, size = 3, fontface = "bold") +  # Add label for Livingstone
+  
+    coord_sf(xlim = c(20, 33), ylim = c(-6, -18.1), expand = FALSE) + 
+    ggtitle("Location of Livingstone in Zambia") +
+    theme_void()
 
-### Step 2: Create your sections
+```
 
-Each section should have a header with the title of the section. This will organize your project, and will automatically fill your table of contents. 
+Livingstone is a key tourism hub and serves as the gateway to some of the region's most notable natural landmarks. Named after the renowned explorer David Livingstone, the town is well-known for its proximity to Victoria Falls and its rich wildlife, including elephants. However, due to climate change and a devastating drought in 2024, the Livingstone area is facing rising levels of human-elephant conflict.
 
-Start with an introduction section, which includes an introduction to yourself, the location you are focused on, and the topics you will cover. **Include a locator map to familiarize the reader with your target area.**
+In this project, I will conduct an exploratory spatial analysis of Livingstone, focusing on the human-elephant conflict exacerbated by climate change.
 
-Create a separate section for each topic you will cover. Include an image showing which SDG is related to this topic. Each section will have at least one map (you will add your maps later in step 4.
 
-### Step 3: Code setup
+### Human Wildlife Conflict and Sustainability
+Human-wildlife conflict (HWC) refers to the interactions between humans and wildlife that result in negative outcomes for either party. This conflict often arises when wildlife causes damage to crops, livestock, property, or even poses threats to human safety. 
 
-Add your "setup" code chunk just below the YAML header. This is where you will load all of your libraries and set any global options (add them as you need them for your data retrieval and maps). You can also make #comments about the libraries and code you use below. You want someone to be able to recreate your maps and use your code to create their own.
+Common impacts of HWC include:
 
-### Step 4: Create your sustainability and resilience maps
+- **Livestock predation**: Predators like lions and hyenas may attack livestock, diminishing livelihood opportunities for farmers.
 
-Using what you have learned so far in this course, create at least one "static" map and one "interactive" map for your chosen location. Start with just a rough draft. You are welcome to create more than two maps, but start with two and complete steps 5 and 6 for those before you add any more. 
+- **Human injuries and fatalities**: Encounters with large animals, such as elephants, can lead to injuries or even deaths among local populations.
 
-Don't reinvent the wheel if you don't have to. Use the code we have practiced with to get started, and alter the code for your location and topic. If you have draft maps from our previous exercises that work for this, use those! If you can find code online that is similar to what you want to do, use it!
+- **Economic losses**: Damage to crops, property, and infrastructure can result in significant economic burdens for rural communities.
 
-### Step 5: Interpret and explain your maps
+- **Food insecurity**: The destruction of crops and resources from wildlife incursions can exacerbate food shortages.
 
-Add text above and below your map that explains what we can see in the data. This is your explanation and interpretation of the data. 
+- **Retaliatory killings**: In some instances, frustrated communities may resort to killing wildlife, which has detrimental effects on conservation efforts.
 
-This should include:
 
-- Where the data came from
-- Interesting patterns in the data
-- Limitations of the data
-- Recommendations for the community to improve sustainability/resilience based on the data (call to action)
+Human-wildlife conflict (HWC) is closely linked to sustainability and the Sustainable Development Goals (SDGs) because it directly impacts ecological balance, community livelihoods, and social equity.
 
-### Step 6: Improve your maps
+In the context of our given project, Human-wildlife conflict (HWC) is most connected to SDG 13: Climate Action. Because climate change causes more frequent and severe droughts, water sources in animal habitats become limited. This forces animals, like elephants, to move in search of water. To address HWC related to drought, we need urgent climate action and effective management strategies that encourage coexistence, supporting the main goals of SDG 13.
 
-Use everything you have learned about cartographic design to improve your maps. Each map should include a title and a legend. 
+![SDG8](https://knowsdgs.jrc.ec.europa.eu/themes/sdgs/assets/img/sdg13.png)
 
-You may want to experiment with different highlighted elements, color schemes, classification/symbology schemes, base maps, contextual data, themes, coordinate reference systems, and other elements. You may want to add a note with metadata, such as author (that's you!), data source, date of publication, explanatory text, etc. You may also want to simplify your map by removing certain elements to make it more clear. 
 
-Your goal for each map is to make it *clear, clean, and telling one story* to your reader. 
+***
 
-### Step 7: Make more maps
+# Creating a Static Map
 
-If you have time, try to make more maps and follow the instructions for steps 4-6 for each one.
+To carry out our analysis, we will begin by creating a static map to provide a broad overview of elephant distribution in Livingstone.
 
-### Step 8: Clean up your R Markdown 
+### Setting Geographic Boundaries
 
-Check for spelling and formatting mistakes, add more explanatory text, make sure you are telling a story in each section that will lead people to take action based on your map. 
+In this initial step, we will define the geographic area of interest by retrieving the bounding box for Livingstone, Zambia. A bounding box is a rectangular area defined by the latitude and longitude coordinates of its corners. This bounding box will serve as the reference point for all subsequent data retrieval and mapping operations.
 
-### Step 9: Push your final version to GitHub with a commit message saying "Finished Final Challenge."
 
-## After the Challenge: Additional Resources
+```{r}
+livingstone_bb <- getbb("Livingstone")
+livingstone_bb
+```
 
-My hope is that after completing this course, you have some ideas about what you would like to learn next. 
 
-Here is a list of resources to help you continue your geospatial data journey:
+### Where Data will Come From
 
-* [Spatial Data Science with R and “terra”](https://rspatial.org) Free tutorials. "These resources teach spatial data analysis and modeling with R. R is a widely used programming language and software environment for data science. R also provides unparalleled opportunities for analyzing spatial data and for spatial modeling."
-* [Spatial Data Science](https://r-spatial.org/book/) Free ebook. "This book introduces and explains the concepts underlying spatial data: points, lines, polygons, rasters, coverages, geometry attributes, data cubes, reference systems, as well as higher-level concepts including how attributes relate to geometries and how this affects analysis. ... The book aims at data scientists who want to get a grip on using spatial data in their analysis. To exemplify how to do things, it uses R."
-* [Analyzing US Census Data: Methods, Maps, and Models in R](https://walker-data.com/census-r/index.html) Free ebook. Check out the rest of this book (we only covered a few chapters) for lots of great ideas for using US Census data. "Census data is widely used in the United States across numerous research and applied fields, including education, business, journalism, and many others. Until recently, the process of working with US Census data has required the use of a wide array of web interfaces and software platforms to prepare, map, and present data products. The goal of this book is to illustrate the utility of the R programming language for handling these tasks, allowing Census data users to manage their projects in a single computing environment."
+The data used in the map was obtained from two key sources:
+
+**OpenStreetMap (OSM):** This platform offers geographic data on roads, water bodies, farmlands, settlements, and protected areas. As a widely-used resource for crowd-sourced geographical information, OSM provides a detailed view of the Livingstone area. We specifically queried OSM for features such as streets, rivers, farmland, and the boundaries of protected areas.
+
+**iNaturalist (iNat):** Elephant observations were gathered from the iNaturalist platform, utilizing specific taxon and place IDs. iNaturalist serves as a biodiversity platform where researchers and citizen scientists upload species observations, offering real-time wildlife data along with the geographic coordinates of animal sightings. For this project, we extracted sightings of elephants (taxon_id = 43692) in the Livingstone area (place_id = 48731).
+
+
+### Retrieving features
+First, we retrieve various types of geographical data related to human infrastructure and natural land features within Livingstone. Specifically, we extract the following:
+
+
+```{r}
+# Retrieving Livingstone streets
+
+livingstone_streets <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature("highway", c("motorway", "primary", "secondary", "tertiary")) %>%
+  osmdata_sf()
+
+# Retrieving data of small streets on livingstone
+livingstone_small_streets <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "highway", value = c("residential", "living_street", "unclassified", "service", "footway")) %>%
+  osmdata_sf()
+
+
+# Retrieving water bodies 
+livingstone_water <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "natural", value = c("water", "river", "lake")) %>%
+  osmdata_sf()
+
+# Retrieving agricultural areas 
+livingstone_farmlands <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "landuse", value = c("farmland", "meadow", "orchard")) %>%
+  osmdata_sf()
+
+# Retrieving human settlements 
+livingstone_settlements <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "place", value = c("village", "city", "suburb", "farm")) %>%
+  osmdata_sf()
+
+# Retrieving protected areas 
+livingstone_protected_areas <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "boundary", value = "protected_area") %>%
+  osmdata_sf()
+
+# Retrieving protected areas 
+livingstone_np <- livingstone_bb %>%
+  opq() %>%
+  add_osm_feature(key = "boundary", value = "national_park") %>%
+  osmdata_sf()
+
+
+
+```
+
+
+### Adding elephant distribution
+In this code block, we obtain research-grade elephant observation data from iNaturalist, focusing specifically on the Livingstone region. Each observation is geo-referenced, providing latitude and longitude coordinates that enable us to track elephant sightings in the area. By overlaying these sightings with other geographic layers, we can identify potential conflict zones where elephants may intersect with human settlements, roads, or agricultural land.
+
+
+```{r}
+inat_obs_df <- get_inat_obs(taxon_id = 43692, 
+                            place_id = 48731,
+                            quality = "research",
+                            geo = TRUE, 
+                            maxresults = 100) 
+
+save(inat_obs_df, file = "livingstone_elephants_inat.Rdata")
+```
+
+
+### Converting Elephant Data to Spatial Features
+This code transforms the raw iNaturalist elephant data into a spatial feature (sf) format. This conversion makes the elephant observations compatible with other spatial datasets, enabling us to plot them on a map. Each observation now includes precise geographic coordinates, facilitating the identification of spatial patterns in elephant movements in relation to human activities and infrastructure.
+
+```{r}
+inat_obs_sf <-  inat_obs_df %>% 
+  select(longitude, latitude, datetime, common_name, scientific_name, image_url, user_login) %>% 
+  st_as_sf(coords=c("longitude", "latitude"), crs=4326)
+
+dim(inat_obs_sf)
+```
+We retrieve 71 observations 
+
+
+### Mapping the Data
+
+This code block brings together all previously collected data onto a single map. By layering this information, the map identifies potential human-elephant conflict zones where the natural behaviors of elephants, such as moving towards water or grazing, bring them into close proximity with human activities like farming or settlement.
+
+
+```{r}
+# Plotting the layers on a map of Livingstone
+p <- ggplot() +
+  
+  # Roads/streets layer
+  geom_sf(data = livingstone_streets$osm_lines, inherit.aes = FALSE, color = "#F89601", size = .4, alpha = .8) +
+  
+  geom_sf(data = livingstone_small_streets$osm_lines, inherit.aes = FALSE, color = "#A4A3A3", size = .2, alpha = .8) +
+  
+  # Water features layer (rivers, lakes)
+  geom_sf(data = livingstone_water$osm_polygons, inherit.aes = FALSE, fill = "#0F7BDF", color = "#0F7BDF", alpha = .6) +
+  
+  # Farmlands/agriculture areas
+  geom_sf(data = livingstone_farmlands$osm_polygons, inherit.aes = FALSE, color = "#31a354", alpha = .5) +
+  
+  # Protected areas (e.g., national parks, wildlife reserves)
+  geom_sf(data = livingstone_protected_areas$osm_polygons, inherit.aes = FALSE, color = "brown", alpha = .4) +
+  
+  geom_sf(data = livingstone_np$osm_polygons, inherit.aes = FALSE, color = "yellow", size = .2, alpha = .8) +
+  
+  # Human settlements (cities, villages, hamlets)
+  geom_sf(data = livingstone_settlements$osm_polygons, inherit.aes = FALSE, color = "purple", size = 1.2) +
+  
+  # add elephant observations
+  geom_point(data = inat_obs_df, aes(x = longitude, y = latitude, color = common_name, text = common_name)) + 
+  
+  # Adjusting the map limits to focus on Livingstone town
+  coord_sf(xlim = c(25.75, 25.95), ylim = c(-17.92, -17.82), expand = FALSE) +
+  
+  # Adding title, subtitle, and theme
+  ggtitle("Livingstone Town", subtitle = "Visualizing Selected Features") +
+  theme_minimal() +
+  
+  # Optional: Adding axis labels
+  labs(
+    color="Common Name", #this changes the title of our legend
+    x = "Longitude",
+    y = "Latitude"
+  )
+  
+# Plot the map
+p
+
+```
+
+
+### Initial observations from static map
+The first thing we notice is that there is only one species represented among our 71 observations, which is the _Savannah Elephant_
+
+One of the most notable features of the map is the absence of clearly marked protected areas or national parks within and around the town. Typically, elephants are found near such areas because they provide essential resources like food, water, and shelter. This lack of visible protected zones could suggest a potential risk of human-elephant conflict (HEC), as elephants may venture closer to human settlements in search of these resources.
+
+The map indicates that water bodies, such as rivers and lakes, are primarily located to the south and west of Livingstone, far from the town center and the majority of human habitation.
+
+Elephant sightings, shown as red dots on the map, are sparsely distributed across various regions. Most sightings occur on the outskirts of Livingstone, with only a few near the town center.
+
+Notably, the map does not clearly depict farmlands or agricultural areas.
+
+
+***
+
+# Analysis using an interactive map
+We can create an interactive map to get a better understanding of the potential of human-elephant conflict in Livingstone. While static maps provide a snapshot of conflict incidents, an interactive map allows for a more dynamic exploration of the data.
+
+
+
+```{r}
+inat_obs_popup_sf <- inat_obs_sf %>% 
+  mutate(popup_html = paste0("<p><b>", common_name, "</b><br/>",
+                             "<i>", scientific_name, "</i></p>",
+                             "<p>Observed: ", datetime, "<br/>",
+                             "User: ", user_login, "</p>",
+                             "<p><img src='", image_url, "' style='width:100%;'/></p>")
+  )
+```
+
+
+```{r}
+htmltools::p("iNaturalist Observations of elephants in livingstone",
+             htmltools::br(),
+             inat_obs_popup_sf$datetime %>% 
+               as.Date() %>% 
+               range(na.rm = TRUE) %>% 
+               paste(collapse = " to "),
+             style = "font-weight:bold; font-size:110%;")
+```
+
+
+```{r}
+leaflet(inat_obs_sf) %>% 
+  setView(lng = 25.9, lat = -17.83, zoom = 12.8) %>%
+  addTiles() %>% 
+  addCircleMarkers(data = inat_obs_popup_sf,
+                   popup = ~popup_html, 
+                   radius = 5) %>%
+  
+  # Add title to the map
+  addControl(position = "topright", html = "Interactive Observations of Elephants in Livingstone")
+```
+
+
+
+
+
+### Interesting Patterns in the Data
+
+* **Elephant Distribution near Water Bodies:** A distinct pattern indicates that elephants are frequently observed near water bodies, such as rivers and lakes. This behavior aligns with known elephant habits, as access to water is crucial for their survival, especially in arid or semi-arid regions like Livingstone.
+
+* **Elephant Presence on the Outskirts of Town:** Elephants are more commonly found on the outskirts of Livingstone, particularly along the eastern border and in close proximity to rural or sparsely populated areas. This suggests that elephants may avoid urban centers unless driven there by external factors such as food or water scarcity.
+
+* **Proximity to the Zimbabwean Border:** A number of sightings occurred near the Zimbabwean border, where protected areas like Zambezi National Park and Victoria Falls National Park are located. This implies that elephants may be migrating across borders, potentially influenced by environmental factors such as water availability or habitat preferences in those national parks.
+
+* **Elephants within Urban Boundaries:** Surprisingly, a few sightings were reported near or within the town center. This unusual pattern may indicate instances of conflict, where elephants enter human areas in search of water or food, or as a result of habitat encroachment.
+
+
+
+### Impact of climate change on Elephant Movements:
+Climate change significantly affects elephant movements, particularly during droughts when traditional water sources in their habitats diminish. As natural bodies of water like rivers and lakes dry up, elephants are forced to venture beyond protected areas, such as Zambezi National Park and Victoria Falls National Park, in search of reliable water supplies. This displacement often leads them into human-populated regions like Livingstone, increasing the likelihood of encounters with residents as they approach farmland, urban centers, or artificial water sources like reservoirs and wells. Consequently, these interactions can result in crop raiding and heightened human-wildlife conflict, as elephants adapt their movements to seek out dwindling resources while navigating a landscape altered by climate change.
+
+
+
+### Potential Increase in Human-Elephant Conflict (HEC)
+As climate change intensifies, leading to prolonged droughts and altered rainfall patterns, elephants are increasingly likely to enter human settlements. The map shows that elephants are already present near areas of human activity. During periods of environmental stress, these scenarios could lead to conflict escalation 
+
+* Drought conditions might push elephants toward Livingstone's urban areas, as they search for reliable water and food sources, leading to more encounters with humans.
+
+* Crop-raiding incidents may increase, as farmlands near the town provide a concentrated source of food, especially when natural vegetation is sparse.
+
+* Elephants are known to destroy infrastructure like fences, wells, or even homes in their search for resources, which could lead to retaliation by communities who may feel their safety and livelihoods are at risk.
+
+
+### Limitations of the Data
+While the data provides valuable insights, several limitations exist.
+
+* **iNaturalist Data Bias:** iNaturalist relies on user-submitted observations, which can lead to data bias toward more accessible areas. The sightings often reflect locations that are easier for people to visit, such as those near tourist attractions or roads, rather than accurately representing the true distribution of elephants. Consequently, regions that are difficult to access may have fewer observations, even if elephants are present. For instance, several observations were recorded under Livingstone, despite actually being within Zimbabwe's borders.
+
+* **Incomplete Protected Area Data:** The OpenStreetMap (OSM) data for protected areas may be incomplete or missing in certain regions, potentially giving the false impression that there are fewer protected zones than truly exist.
+
+* **Time-Specific Nature of Observations:** iNaturalist data reflects sightings collected within a specific timeframe and does not provide a continuous or comprehensive survey. This time-sensitive nature means that patterns may vary across different seasons or years, particularly in response to climatic factors such as droughts.
+
+* **Generalization of Climate Impacts** Although the map illustrates elephant movement in relation to human settlements and protected areas, it does not explicitly account for climatic changes (e.g., drought severity, water levels). As a result, the patterns we observe regarding climate-driven movements are inferred rather than directly measured.
+
+
+
+### Recommendations for Building Resilience
+* Human-elephant conflict mitigation strategies such as wildlife corridors, fencing, and early warning systems may become more critical. Ensuring that elephants can safely navigate between natural water sources, farmlands, and protected areas without encountering human settlements will help reduce conflict.
+
+* Community engagement is vital in building local support for conservation efforts, especially in ensuring that farmers and residents have the tools and knowledge to minimize interactions with elephants.
+
+* Cross-border collaboration between Zambia and Zimbabwe will become even more important in managing elephant populations, especially as these animals freely move between the two countries'.
+
+* Economic Incentives such as compensation schemes for farmers who experience crop loss due to elephant activity can help mitigate the financial burden of HWC. Additionally, promoting eco-tourism can create alternative income sources that encourage communities to protect wildlife rather than view them as a threat.
+
+* Sustainable Land Use Planning can minimize conflicts by strategically locating agricultural activities away from critical elephant habitats. Involving local communities in land-use decisions can help balance agricultural needs with wildlife conservation.
+
+* Disaster Preparedness Planning should include strategies for managing increased conflict during droughts or other climate-induced stresses. This can involve establishing rapid response teams to address emerging conflicts and providing communities with resources to adapt to changing environmental conditions.
+
+
+***
+
+# Conclusion
+
+In summary, climate change is a major factor contributing to human-elephant conflict in Livingstone, particularly during droughts. As water and food resources dwindle, elephants are more inclined to venture into towns and agricultural lands, heightening the likelihood of negative interactions with humans. Additionally, the absence of large protected areas on the Zambian side of the border worsens the situation, leading elephants to cross into human-dominated landscapes.
+
